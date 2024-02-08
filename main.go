@@ -33,3 +33,41 @@ func authHandler(w http.ResponseWriter, r *http.Request) {
 func apiHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "API handler")
 }
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+func getXMLFiles(directory string) []string {
+	var xmlFiles []string
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if filepath.Ext(path) == ".xml" {
+			xmlFiles = append(xmlFiles, path)
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	return xmlFiles
+}
+
+func main() {
+	datapowerDirectory := "/path/to/datapower/deployment"
+	xmlFilesList := getXMLFiles(datapowerDirectory)
+
+	fmt.Println("XML Files in Datapower Deployment:")
+	for _, xmlFile := range xmlFilesList {
+		fmt.Println(xmlFile)
+	}
+}
