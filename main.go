@@ -71,3 +71,61 @@ func main() {
 		fmt.Println(xmlFile)
 	}
 }
+
+
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+func getXMLFiles(directory string) map[string][]string {
+	xmlFilesByParent := make(map[string][]string)
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && info.Name() == "temp" {
+			parentDir := filepath.Base(filepath.Dir(path))
+			files, err := os.ReadDir(path)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				if !file.IsDir() && filepath.Ext(file.Name()) == ".xml" {
+					xmlFilesByParent[parentDir] = append(xmlFilesByParent[parentDir], filepath.Join(path, file.Name()))
+				}
+			}
+			return filepath.SkipDir // Skip subdirectories of "temp"
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	return xmlFilesByParent
+}
+
+func main() {
+	currentDirectory, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	xmlFilesByParent := getXMLFiles(currentDirectory)
+
+	fmt.Println("XML Files in 'temp' Subdirectory:")
+	for parentDir, xmlFiles := range xmlFilesByParent {
+		fmt.Printf("Parent Folder: %s\n", parentDir)
+		for _, xmlFile := range xmlFiles {
+			fmt.Println(xmlFile)
+		}
+		fmt.Println()
+	}
+}
