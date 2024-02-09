@@ -129,3 +129,62 @@ func main() {
 		fmt.Println()
 	}
 }
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
+
+func getTempDirInfo(directory string) (string, []string) {
+	var tempDirParent string
+	var xmlFiles []string
+
+	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() && info.Name() == "temp" {
+			tempDirParent = filepath.Base(filepath.Dir(path))
+			files, err := os.ReadDir(path)
+			if err != nil {
+				return err
+			}
+			for _, file := range files {
+				if !file.IsDir() && filepath.Ext(file.Name()) == ".xml" {
+					xmlFiles = append(xmlFiles, filepath.Join(path, file.Name()))
+				}
+			}
+			return filepath.SkipDir // Skip subdirectories of "temp"
+		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	return tempDirParent, xmlFiles
+}
+
+func main() {
+	currentDirectory, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	tempDirParent, xmlFiles := getTempDirInfo(currentDirectory)
+
+	if tempDirParent != "" {
+		fmt.Printf("Parent Folder of 'temp' Subdirectory: %s\n", tempDirParent)
+		fmt.Println("XML Files in 'temp' Subdirectory:")
+		for _, xmlFile := range xmlFiles {
+			fmt.Println(xmlFile)
+		}
+	} else {
+		fmt.Println("No 'temp' Subdirectory found.")
+	}
+}
+
